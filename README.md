@@ -1,1 +1,4 @@
 # ensemble
+
+[![Build Status](https://travis-ci.org/Rycieos/ensemble.svg?branch=master)](https://travis-ci.org/Rycieos/ensemble)
+

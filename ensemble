@@ -59,9 +59,17 @@ def update():
             dest = os.path.join(args.location, os_ + "_" + type_)
 
             for fn in os.listdir(dest):
-                playlist = os.path.splitext(fn)[0]
+                name, ext = os.path.splitext(fn)
+                ext = ext[1:]
 
-                if os.path.isfile(os.path.join(raw_dir, playlist)):
+                # Check if this file is the type that should be here
+                if ext != type_:
+                    if args.debug:
+                        print("Found file {0} with wrong extension".format(fn))
+                        print("Had: {0}, should be: {1}".format(ext, type_))
+                    continue
+
+                if os.path.isfile(os.path.join(raw_dir, name)):
                     # Have playlist, check it
                     if needs_update(dest, fn):
                         update_playlist(os_, dest, fn)
@@ -76,6 +84,7 @@ def needs_update(dest, playlist):
 
 def update_playlist(os_, dest, playlist):
     name, ext = os.path.splitext(playlist)
+    ext = ext[1:]
     print("Updating playlist {0}".format(name))
     raw_file = os.path.join(raw_dir, name)
 
@@ -91,12 +100,23 @@ def update_playlist(os_, dest, playlist):
             print("Input line: {0}".format(line))
             print("Prefix line: {0}".format(oss[os_]))
 
+        if ext == "pls":
+            # Check for pls header
+            if not line.startswith("File"):
+                if args.debug:
+                    print("Skipping non-file line")
+                continue
+            # Remove pls File number
+            line = line[(line.index('=') + 1):]
+            if args.debug:
+                print("After stripping pls: {0}".format(line))
+
         # Strip os prefix
         if line.startswith(oss[os_]):
             line = line[(len(oss[os_]) + 1):]
         else:
             print("Skipping file: '{0}', does not have valid prefix".format(line))
-            pass
+            continue
 
         if args.debug:
             print("Formated line: {0}".format(line))
@@ -104,7 +124,7 @@ def update_playlist(os_, dest, playlist):
         # Check if file exists
         if not os.path.isfile(os.path.join(local_prefix, line)):
             print("Skipping file: '{0}', does not exist in library".format(line))
-            pass
+            continue
 
         outf.write("{0}\n".format(line))
 
@@ -132,9 +152,9 @@ def convert_all(playlist):
 
             for line in inf:
                 if os_ == "nix":
-                    line = posixpath.join(oss[os_], line)
+                    line = posixpath.abspath(posixpath.join(oss[os_], line))
                 elif os_ == "win":
-                    line = ntpath.join(oss[os_], line)
+                    line = ntpath.abspath(ntpath.join(oss[os_], line))
 
                 if type_ == "pls":
                     i += 1
