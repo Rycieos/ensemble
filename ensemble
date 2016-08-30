@@ -6,33 +6,48 @@ import os
 import posixpath
 import time
 
-parser = argparse.ArgumentParser(description='Update universal playlist library')
-parser.add_argument('--daemon', '-D', action='store_true', help='run as daemon')
-parser.add_argument('--debug', '-x', action='store_true', help='print debugging info')
-parser.add_argument('--location', '-l', action='store', default=os.getcwd(),
-                    help='playlists location (default: current directory)')
-args = parser.parse_args()
-
-# Load config
-try:
-    config = open(os.path.join(args.location, "ensemble.config"))
-    exec(config.read())
-except FileNotFoundError as error:
-    print("Config file not found!")
-    os._exit(1)
-finally:
-    config.close()
-
-# Setup shortcuts
-raw_dir = os.path.join(args.location, "local")
-
 def main():
+    parser = argparse.ArgumentParser(description='Update universal playlist library')
+    parser.add_argument('--daemon', '-D', action='store_true', help='run as daemon')
+    parser.add_argument('--debug', '-x', action='store_true', help='print debugging info')
+    parser.add_argument('--location', '-l', action='store', default=os.getcwd(),
+                        help='playlists location (default: current directory)')
+    global args
+    args = parser.parse_args()
+
+    global oss, types, local_prefix
+    oss, types, local_prefix = load_config()
+
+    # Setup shortcuts
+    global raw_dir
+    raw_dir = os.path.join(args.location, "local")
+
     if args.debug:
         print("Config file dump:")
         print("OSs': {0}".format(oss))
         print("Types: {0}".format(types))
 
-    # Initialize playlist dirs
+    make_formats()
+
+    if args.daemon:
+        while True:
+            update()
+            time.sleep(60)
+    else:
+        update()
+
+def load_config():
+    try:
+        config = open(os.path.join(args.location, "ensemble.config"))
+        exec(config.read())
+        return (oss, types, local_prefix)
+    except IOError as error:
+        print("Config file not found!")
+        os._exit(1)
+    finally:
+        config.close()
+
+def make_formats():
     if not os.path.exists(raw_dir):
         os.makedirs(raw_dir)
     for os_ in oss:
@@ -45,13 +60,6 @@ def main():
                 if args.debug:
                     print("Making directory {0}".format(dest))
                 os.makedirs(dest)
-
-    if args.daemon:
-        while True:
-            update()
-            time.sleep(60)
-    else:
-        update()
 
 def update():
     for os_ in oss:
