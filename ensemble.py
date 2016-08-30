@@ -38,7 +38,7 @@ class Ensemble:
 
         try:
             with open(os.path.join(location, "ensemble.config")) as config:
-                exec(config.read())
+                exec(config.read(), globals(), globals())
         except IOError as error:
             print("Config file not found!")
             os._exit(1)
