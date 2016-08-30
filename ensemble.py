@@ -36,19 +36,16 @@ class Ensemble:
         self.debug = debug
         self.location = location
 
-        config = None
         try:
-            config = open(os.path.join(location, "ensemble.config"))
-            exec(config.read())
-            self.oss = oss
-            self.types = types
-            self.local_prefix = local_prefix
+            with open(os.path.join(location, "ensemble.config")) as config:
+                exec(config.read())
         except IOError as error:
             print("Config file not found!")
             os._exit(1)
-        finally:
-            if config is not None:
-                config.close()
+
+        self.oss = oss
+        self.types = types
+        self.local_prefix = local_prefix
 
     def make_formats(self):
         if not os.path.exists(self.raw_dir):
