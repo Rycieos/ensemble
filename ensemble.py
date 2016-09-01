@@ -97,7 +97,7 @@ class Ensemble:
         raw_file = os.path.join(self.raw_dir, name)
 
         # Copy new playlist to raw
-        prefix = self.oss[os_]
+        os_type, prefix = self.oss[os_]
         inf = open(os.path.join(dest, playlist), "r")
         outf = open(raw_file, "w")
 
@@ -152,7 +152,7 @@ class Ensemble:
         for os_ in self.oss:
             for type_ in self.types:
                 dest = os.path.join(self.location, os_ + "_" + type_)
-                prefix = self.oss[os_]
+                os_type, prefix = self.oss[os_]
                 inf = open(os.path.join(self.raw_dir, playlist), "r")
                 outf = open(os.path.join(dest, playlist + "." + type_), "w")
 
@@ -161,9 +161,9 @@ class Ensemble:
                     i = 0
 
                 for line in inf:
-                    if os_ == "nix":
+                    if os_type == "nix":
                         line = posixpath.abspath(posixpath.join(prefix, line))
-                    elif os_ == "win":
+                    elif os_type == "win":
                         line = ntpath.abspath(ntpath.join(prefix, line))
 
                     if type_ == "pls":

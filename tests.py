@@ -16,8 +16,10 @@ def en(request):
 
     def close():
         touch("test")
-        shutil.rmtree("nix_m3u", ignore_errors=True)
-        shutil.rmtree("nix_pls", ignore_errors=True)
+        shutil.rmtree("android_m3u", ignore_errors=True)
+        shutil.rmtree("android_pls", ignore_errors=True)
+        shutil.rmtree("linux_m3u", ignore_errors=True)
+        shutil.rmtree("linux_pls", ignore_errors=True)
         shutil.rmtree("win_m3u", ignore_errors=True)
         shutil.rmtree("win_pls", ignore_errors=True)
         shutil.rmtree("local", ignore_errors=True)
@@ -36,10 +38,12 @@ def test_config(en):
 def test_formats(en):
     en.make_formats()
 
+    assert os.path.exists("android_m3u")
+    assert os.path.exists("android_pls")
+    assert os.path.exists("linux_m3u")
+    assert os.path.exists("linux_pls")
     assert os.path.exists("win_m3u")
     assert os.path.exists("win_pls")
-    assert os.path.exists("nix_m3u")
-    assert os.path.exists("nix_pls")
     assert os.path.exists("local")
 
 def test_update_check(en):
@@ -49,7 +53,7 @@ def test_update_check(en):
     time.sleep(.01)
     touch(os.path.join("local", "foo"))
     time.sleep(.01)
-    touch(os.path.join("nix_m3u", "foo.m3u"))
+    touch(os.path.join("linux_m3u", "foo.m3u"))
 
-    assert en.needs_update("nix_m3u", "foo.m3u")
+    assert en.needs_update("linux_m3u", "foo.m3u")
     assert not en.needs_update("win_m3u", "foo.m3u")
