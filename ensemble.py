@@ -12,6 +12,8 @@ def main():
     parser.add_argument('--debug', '-x', action='store_true', help='print debugging info')
     parser.add_argument('--location', '-l', action='store', default=os.getcwd(),
                         help='playlists location (default: current directory)')
+    parser.add_argument('-t', action='store', default=60,
+                        help='time between updates in daemon mode (default 60)')
     args = parser.parse_args()
 
     en = Ensemble(args.location, args.debug)
@@ -26,7 +28,7 @@ def main():
     if args.daemon:
         while True:
             en.update()
-            time.sleep(60)
+            time.sleep(float(args.t))
     else:
         en.update()
 
