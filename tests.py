@@ -12,10 +12,9 @@ def touch(fname, times=None):
 
 @pytest.fixture
 def en(request):
-    return ensemble.Ensemble(".")
+    en = ensemble.Ensemble(".")
 
     def close():
-        touch("test")
         shutil.rmtree("android_m3u", ignore_errors=True)
         shutil.rmtree("android_pls", ignore_errors=True)
         shutil.rmtree("linux_m3u", ignore_errors=True)
@@ -24,6 +23,7 @@ def en(request):
         shutil.rmtree("win_pls", ignore_errors=True)
         shutil.rmtree("local", ignore_errors=True)
     request.addfinalizer(close)
+    return en
 
 def test_config(en):
     assert os.path.exists("ensemble.config")
