@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import codecs
 import ntpath
 import os
 import posixpath
@@ -104,12 +105,21 @@ class Ensemble:
         outf = open(raw_file, "w")
 
         for line in inf:
-            # Strip newline
-            line = line[:-1]
+            if self.debug:
+                print(repr(line))
+
+            # Strip newline and UTF-8 BOM
+            line = line.strip()
+            if line.startswith(codecs.BOM_UTF8):
+                line = line[3:]
 
             if self.debug:
                 print("Input line: {0}".format(line))
                 print("Prefix line: {0}".format(prefix))
+
+            # Skip comment lines (for m3u extended)
+            if line.startswith("#"):
+                continue
 
             if ext == "pls":
                 # Check for pls header
@@ -126,14 +136,21 @@ class Ensemble:
             if line.startswith(prefix):
                 line = line[(len(prefix) + 1):]
             else:
+                # TODO: check for finding non-printin chars
                 print("Skipping file: '{0}', does not have valid prefix".format(line))
+                if self.debug:
+                    print(repr(line))
                 continue
+
+            # Convert backslashes to local
+            if os_type == "win":
+                line = os.path.join(*line.split('\\'))
 
             if self.debug:
                 print("Formated line: {0}".format(line))
 
             # Check if file exists
-            if not os.path.isfile(os.path.join(self.local_prefix, line)):
+            if not os.path.isfile(os.path.abspath(os.path.join(self.local_prefix, line))):
                 print("Skipping file: '{0}', does not exist in library".format(line))
                 continue
 
