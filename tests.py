@@ -22,8 +22,17 @@ def en(request):
         shutil.rmtree("win_m3u", ignore_errors=True)
         shutil.rmtree("win_pls", ignore_errors=True)
         shutil.rmtree("local", ignore_errors=True)
+        shutil.rmtree("music", ignore_errors=True)
     request.addfinalizer(close)
     return en
+
+def test_config_check():
+    failed = False
+    try:
+        ensemble.Ensemble("foo")
+    except IOError:
+        failed = True
+    assert failed
 
 def test_config(en):
     assert os.path.exists("ensemble.config")
@@ -57,3 +66,88 @@ def test_update_check(en):
 
     assert en.needs_update("linux_m3u", "foo.m3u")
     assert not en.needs_update("win_m3u", "foo.m3u")
+
+def test_file_check(en):
+    en.make_formats()
+
+    touch(os.path.join("linux_m3u", "foo.m3u"))
+    en.update_playlist("linux", "linux_m3u", "foo.m3u")
+    assert os.path.exists("local/foo")
+    assert os.path.exists("win_pls/foo.pls")
+
+def test_update(en):
+    en.make_formats()
+
+    touch(os.path.join("linux_m3u", "foo.m3u"))
+    en.update()
+    assert os.path.exists("linux_m3u/foo.m3u")
+    assert os.path.exists("local/foo")
+    assert os.path.exists("win_pls/foo.pls")
+
+def test_convert_all(en):
+    en.make_formats()
+
+    touch(os.path.join("local", "foo"))
+    en.convert_all("foo")
+    assert not en.needs_update("win_m3u", "foo.m3u")
+
+def test_music_check(en):
+    en.make_formats()
+
+    outf = open("linux_m3u/foo.m3u", "w")
+    outf.write("/media/music/bar.mp3\n")
+    outf.close()
+
+    en.update_playlist("linux", "linux_m3u", "foo.m3u")
+
+    inf = open("local/foo")
+    found = False
+    for line in inf:
+        if line.strip() == "bar.mp3":
+            found = True
+    inf.close()
+
+    assert not found
+
+    os.makedirs("music")
+    touch("music/bar.mp3")
+
+    outf = open("linux_m3u/foo.m3u", "w")
+    outf.write("/media/music/bar.mp3\n")
+    outf.close()
+
+    en.update_playlist("linux", "linux_m3u", "foo.m3u")
+
+    inf = open("local/foo")
+    found = False
+    for line in inf:
+        if line.strip() == "bar.mp3":
+            found = True
+    inf.close()
+
+    assert found
+
+def test_whitespace(en):
+    en.make_formats()
+    os.makedirs("music")
+    touch("music/foo bar.mp3")
+
+    outf = open("linux_m3u/foo bar.m3u", "w")
+    outf.write("/media/music/foo bar.mp3\n")
+    outf.close()
+
+    en.update_playlist("linux", "linux_m3u", "foo bar.m3u")
+
+    inf = open("local/foo bar")
+    found = False
+    for line in inf:
+        if line.strip() == "foo bar.mp3":
+            found = True
+    inf.close()
+
+    assert found
+
+def test_main(en):
+    ensemble.main(['--debug'])
+    assert os.path.exists("win_pls")
+    assert os.path.exists("local")

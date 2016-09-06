@@ -7,7 +7,7 @@ import os
 import posixpath
 import time
 
-def main():
+def main(args = None):
     parser = argparse.ArgumentParser(description='Update universal playlist library')
     parser.add_argument('--daemon', '-D', action='store_true', help='run as daemon')
     parser.add_argument('--debug', '-x', action='store_true', help='print debugging info')
@@ -15,9 +15,13 @@ def main():
                         help='playlists location (default: current directory)')
     parser.add_argument('-t', action='store', default=60,
                         help='time between updates in daemon mode (default 60)')
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
-    en = Ensemble(args.location, args.debug)
+    try:
+        en = Ensemble(args.location, args.debug)
+    except IOError:
+        print("Config file not found!")
+        os._exit(1)
 
     if args.debug:
         print("Config file dump:")
@@ -39,12 +43,8 @@ class Ensemble:
         self.debug = debug
         self.location = location
 
-        try:
-            with open(os.path.join(location, "ensemble.config")) as config:
-                exec(config.read(), globals(), globals())
-        except IOError as error:
-            print("Config file not found!")
-            os._exit(1)
+        with open(os.path.join(location, "ensemble.config")) as config:
+            exec(config.read(), globals(), globals())
 
         self.oss = oss
         self.types = types
