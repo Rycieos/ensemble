@@ -110,7 +110,7 @@ class Ensemble:
 
             # Strip newline and UTF-8 BOM
             line = line.strip()
-            if line.startswith(codecs.BOM_UTF8):
+            if line.startswith(str(codecs.BOM_UTF8)):
                 line = line[3:]
 
             if self.debug:
@@ -136,7 +136,6 @@ class Ensemble:
             if line.startswith(prefix):
                 line = line[(len(prefix) + 1):]
             else:
-                # TODO: check for finding non-printin chars
                 print("Skipping file: '{0}', does not have valid prefix".format(line))
                 if self.debug:
                     print(repr(line))
