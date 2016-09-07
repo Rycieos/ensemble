@@ -163,15 +163,13 @@ class Ensemble:
             print("Converting all for playlist {0}".format(name))
         self.convert_all(name)
 
-        # Make raw type be newest
-        os.utime(raw_file, None)
-
     def convert_all(self, playlist):
+        raw_file = os.path.join(self.raw_dir, playlist)
         for os_ in self.oss:
             for type_ in self.types:
                 dest = os.path.join(self.location, os_ + "_" + type_)
                 os_type, prefix = self.oss[os_]
-                inf = open(os.path.join(self.raw_dir, playlist), "r")
+                inf = open(raw_file, "r")
                 outf = open(os.path.join(dest, playlist + "." + type_), "w")
 
                 if type_ == "pls":
@@ -195,6 +193,10 @@ class Ensemble:
 
                 inf.close()
                 outf.close()
+
+        # Make raw type be newest
+        with open(raw_file, 'a'):
+            os.utime(raw_file, None)
 
 if __name__ == "__main__":
     main()
