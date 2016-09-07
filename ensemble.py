@@ -112,6 +112,8 @@ class Ensemble:
             line = line.strip()
             if line.startswith(str(codecs.BOM_UTF8)):
                 line = line[3:]
+            elif line.startswith(u'\ufeff'):
+                line = line[1:]
 
             if self.debug:
                 print("Input line: {0}".format(line))

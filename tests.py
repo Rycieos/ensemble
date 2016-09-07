@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
 
 import ensemble
+import codecs
 import os
 import pytest
 import shutil
@@ -94,6 +95,14 @@ def test_dirty_update(en):
     assert os.path.exists("linux_m3u/foo.m3u")
     assert os.path.exists("local/foo")
     assert os.path.exists("win_pls/foo.pls")
+
+def test_wrong_file(en):
+    en.make_formats()
+
+    touch(os.path.join("linux_m3u", "foo.pls"))
+    en.update()
+    assert not os.path.exists("local/foo")
+    assert not os.path.exists("win_pls/foo.pls")
 
 def test_convert_all(en):
     en.make_formats()
@@ -236,6 +245,29 @@ def test_whitespace(en):
 
     assert found
 
+def test_BOM(en):
+    en.make_formats()
+    os.makedirs("music")
+    touch("music/bar.mp3")
+
+    outf = open("linux_m3u/foo.m3u", "wb")
+    outf.write(codecs.BOM_UTF8)
+    outf.close()
+    outf = open("linux_m3u/foo.m3u", "a")
+    outf.write("/media/music/bar.mp3\n")
+    outf.close()
+
+    en.update_playlist("linux", "linux_m3u", "foo.m3u")
+
+    inf = open("local/foo")
+    found = False
+    for line in inf:
+        if line.strip() == "bar.mp3":
+            found = True
+    inf.close()
+
+    assert found
+
 def test_main(en):
     ensemble.main(['--debug'])
     assert os.path.exists("win_pls")
@@ -247,6 +279,10 @@ def test_debug(en):
     clean()
     test_dirty_update(en)
     clean()
+    test_wrong_file(en)
+    clean()
     test_pls(en)
+    clean()
+    test_prefix(en)
     clean()
     test_music_check(en)
