@@ -134,7 +134,7 @@ class Ensemble:
 
             # Strip os prefix
             if line.startswith(prefix):
-                line = line[(len(prefix) + 1):]
+                line = line[len(prefix):]
             else:
                 print("Skipping file: '{0}', does not have valid prefix".format(line))
                 if self.debug:
@@ -180,9 +180,9 @@ class Ensemble:
 
                 for line in inf:
                     if os_type == "nix":
-                        line = posixpath.abspath(posixpath.join(prefix, line))
+                        line = posixpath.normpath(posixpath.join(prefix, line))
                     elif os_type == "win":
-                        line = ntpath.abspath(ntpath.join(prefix, line))
+                        line = ntpath.normpath(ntpath.join(prefix, line))
 
                     if type_ == "pls":
                         i += 1
