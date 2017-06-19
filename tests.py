@@ -29,9 +29,7 @@ def en(request):
 
 def test_config_check():
     failed = False
-    try:
-        ensemble.Ensemble("foo")
-    except IOError:
+    if (ensemble.main(['--location', 'foo']) == 1):
         failed = True
     assert failed
 

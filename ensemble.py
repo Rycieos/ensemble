@@ -21,7 +21,7 @@ def main(args = None):
         en = Ensemble(args.location, args.debug)
     except IOError:
         print("Config file not found!")
-        os._exit(1)
+        return 1
 
     if args.debug:
         print("Config file dump:")
